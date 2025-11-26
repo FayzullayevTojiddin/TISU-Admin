@@ -107,9 +107,6 @@ class RoomResource extends Resource
                         'inactive' => 'Inactive',
                         'archived' => 'Archived',
                     ]),
-
-                // fakultet bo'yicha tez filter — agar talab bo'lsa, uni faollashtiring:
-                // Tables\Filters\SelectFilter::make('fakultet')->options(Room::query()->distinct()->pluck('fakultet','fakultet')->toArray())
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -14,6 +14,6 @@ class Room extends Model
 
     public function lessons()
     {
-        return $this->hasMany(Room::class);
+        return $this->hasMany(Lesson::class);
     }
 }

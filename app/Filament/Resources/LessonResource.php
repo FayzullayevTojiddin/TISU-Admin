@@ -79,16 +79,6 @@ class LessonResource extends Resource
                     ->schema([
                         Card::make()
                             ->schema([
-                                TextInput::make('details.fakultet')
-                                    ->label('Fakultet')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->placeholder('-'),
-                            ])
-                            ->columnSpan(1),
-
-                        Card::make()
-                            ->schema([
                                 Placeholder::make('teacher_name')
                                     ->label("O'qituvchi")
                                     ->content(fn () => auth()->check() ? '-' : '-') // placeholder for layout
@@ -120,6 +110,14 @@ class LessonResource extends Resource
                                 Placeholder::make('group_name')
                                     ->label('Guruh')
                                     ->content(fn ($get, $record) => $record?->group?->name ?? '-'),
+                            ])
+                            ->columnSpan(1),
+
+                        Card::make()
+                            ->schema([
+                                Placeholder::make('room_id')
+                                    ->label('Xona')
+                                    ->content(fn ($get, $record) => $record?->room?->name ?? '-'),
                             ])
                             ->columnSpan(1),
 
@@ -262,6 +260,11 @@ class LessonResource extends Resource
 
                 TextColumn::make('group.name')
                     ->label('Guruh')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('room.name')
+                    ->label('Xona')
                     ->searchable()
                     ->sortable(),
 

@@ -16,6 +16,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 
+use Filament\Forms\Components\BelongsToSelect;
+
 class LessonsRelationManager extends RelationManager
 {
     protected static string $relationship = 'lessons';
@@ -44,6 +46,13 @@ class LessonsRelationManager extends RelationManager
                     ->image()
                     ->directory('lessons')
                     ->nullable(),
+
+                BelongsToSelect::make('room_id')
+                    ->label('Xona')
+                    ->relationship('room', 'name')   // room -> name
+                    ->searchable()                   // qidirish yoqiladi
+                    ->preload()                      // tez yuklanadi
+                    ->required(),
 
                 TextInput::make('details.title')
                     ->label('Sarlavha')
@@ -82,6 +91,11 @@ class LessonsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable()
                     ->wrap(),
+
+                TextColumn::make('room.name')
+                    ->label('Xona')
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('date')
                     ->label('Sana')

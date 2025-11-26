@@ -6,7 +6,7 @@ use App\Models\Template;
 use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/admin');
 });
 
 Route::get('/examples/template-excel/{template}', function (Template $template) {
