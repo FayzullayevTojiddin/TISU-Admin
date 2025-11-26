@@ -13,9 +13,8 @@ return new class extends Migration
     {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('message_collection_id')
-                    ->constrained()
-                    ->onDelete('cascade');
+            
+            $table->foreignId('message_collection_id')->constrained();
 
             $table->json('details')->nullable();
 

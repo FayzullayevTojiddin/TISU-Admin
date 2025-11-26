@@ -8,17 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('rooms', function (Blueprint $table) {
+        Schema::create('cameras', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('fakultet');
-            $table->string('status')->default('active');
+            $table->unsignedBigInteger('room_id')->nullable();
+            $table->string('status')->default('inactive');
+            $table->json('details')->nullable();
             $table->timestamps();
+
+            $table->foreign('room_id')->references('id')->on('rooms')->onDelete('set null');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('rooms');
+        Schema::dropIfExists('cameras');
     }
 };

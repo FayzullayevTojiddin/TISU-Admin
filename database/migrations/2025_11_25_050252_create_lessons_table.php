@@ -14,6 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('teacher_id');
             $table->unsignedBigInteger('group_id');
 
+            $table->unsignedBigInteger('room_id');
+
             $table->date('date');
             $table->json('details')->nullable(); // JSON ma'lumotlar
 
@@ -28,6 +30,10 @@ return new class extends Migration
 
             $table->foreign('group_id')
                 ->references('id')->on('groups')
+                ->onDelete('cascade');
+
+            $table->foreign('room_id')
+                ->references('id')->on('rooms')
                 ->onDelete('cascade');
         });
     }
