@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\LessonController;
+use App\Http\Controllers\SearchController;
 
 Route::prefix('teacher')->group(function () {
     Route::post('/login', [TeacherController::class, 'login']);
@@ -16,5 +17,12 @@ Route::prefix('teacher')->group(function () {
         Route::get('/lessons', [LessonController::class, 'getLessons']);
         Route::post('/lessons', [LessonController::class, 'store']);
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
+
+        Route::get('/search/fakultets', [SearchController::class, 'fakultets']);
+        Route::get('/search/groups', [SearchController::class, 'groups']);
+        Route::get('/search/rooms', [SearchController::class, 'rooms']);
+        Route::get('/search/subjects', [SearchController::class, 'subjects']);
+        Route::get('/search/paras', [SearchController::class, 'paras']);
+        Route::get('/search/lesson-types', [SearchController::class, 'lessonTypes']);
     });
 });

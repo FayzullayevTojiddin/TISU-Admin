@@ -19,11 +19,10 @@ return new class extends Migration
             $table->date('date');
             $table->json('details')->nullable(); // JSON ma'lumotlar
 
-            $table->string('image');
+            $table->string('image')->nullable();
 
             $table->timestamps();
 
-            // Foreign keys (optional lekin tavsiya qilinadi)
             $table->foreign('teacher_id')
                 ->references('id')->on('teachers')
                 ->onDelete('cascade');

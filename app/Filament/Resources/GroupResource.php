@@ -57,10 +57,6 @@ class GroupResource extends Resource
                     ->rowIndex()
                     ->sortable(false),
 
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
-
                 TextColumn::make('name')
                     ->label('Nomi')
                     ->searchable()
@@ -70,6 +66,24 @@ class GroupResource extends Resource
                 TextColumn::make('created_at')
                     ->label('Yaratildi')
                     ->dateTime('Y-m-d H:i')
+                    ->sortable(),
+
+                TextColumn::make('students_count')
+                    ->label("O'quvchilar soni")
+                    ->counts('students')
+                    ->badge()
+                    ->icon('heroicon-o-user-group')
+                    ->color('gray')
+                    ->formatStateUsing(fn ($state) => "{$state} ta")
+                    ->sortable(),
+
+                TextColumn::make('lessons_count')
+                    ->label("Darslar soni")
+                    ->counts('lessons')
+                    ->badge()
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('gray')
+                    ->formatStateUsing(fn ($state) => "{$state} ta")
                     ->sortable(),
             ])
             ->filters([

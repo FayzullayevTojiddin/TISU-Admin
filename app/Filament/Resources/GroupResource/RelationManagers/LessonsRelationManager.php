@@ -137,8 +137,10 @@ class LessonsRelationManager extends RelationManager
                 Tables\Actions\CreateAction::make()->label("Dars qo'shish"),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Tahrirlash'),
-                Tables\Actions\DeleteAction::make()->label('O‘chirish'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()->label('Tahrirlash')->button(),
+                    Tables\Actions\DeleteAction::make()->label('O‘chirish')->button(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
