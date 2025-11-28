@@ -46,10 +46,6 @@ class SearchController extends Controller
         ]);
     }
 
-    /**
-     * Xonalar ro'yxati (fakultet bilan filterlanadi va searchable)
-     * GET /teacher/search/rooms?q=...&fakultet=Iqtisodiyot%20va%20...
-     */
     public function rooms(Request $request)
     {
         $q = $request->query('q');

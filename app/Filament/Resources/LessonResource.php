@@ -252,8 +252,8 @@ class LessonResource extends Resource
                     ->label('ID')
                     ->sortable(),
 
-                TextColumn::make('teacher.full_name')
-                    ->label("O'qituvchi")
+                TextColumn::make('details.fakultet')
+                    ->label('Fakultet')
                     ->searchable()
                     ->sortable()
                     ->wrap(),

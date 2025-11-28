@@ -11,13 +11,9 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class TeacherController extends Controller
 {
-    /**
-     * Login funksiyasi - login va parolni tekshiradi va JWT token qaytaradi
-     */
     public function login(Request $request)
     {
         try {
-            // Validatsiya
             $validator = Validator::make($request->all(), [
                 'login' => 'required|string',
                 'password' => 'required|string',
@@ -32,11 +28,9 @@ class TeacherController extends Controller
                     ]
                 ], 422);
             }
-
-            // O'qituvchini topish
+            
             $teacher = Teacher::where('login', $request->login)->first();
 
-            // Login yoki parol noto'g'ri
             if (!$teacher || !Hash::check($request->password, $teacher->password)) {
                 return response()->json([
                     'success' => false,
@@ -46,7 +40,6 @@ class TeacherController extends Controller
                 ], 401);
             }
 
-            // Status tekshirish
             if ($teacher->status != 1) {
                 return response()->json([
                     'success' => false,
@@ -56,7 +49,6 @@ class TeacherController extends Controller
                 ], 403);
             }
 
-            // JWT token yaratish
             $token = JWTAuth::fromUser($teacher);
 
             return response()->json([

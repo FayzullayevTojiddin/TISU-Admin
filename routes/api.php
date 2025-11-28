@@ -17,6 +17,7 @@ Route::prefix('teacher')->group(function () {
         Route::get('/lessons', [LessonController::class, 'getLessons']);
         Route::post('/lessons', [LessonController::class, 'store']);
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
+        Route::post('/lessons/{id}', [LessonController::class, 'update']);
 
         Route::get('/search/fakultets', [SearchController::class, 'fakultets']);
         Route::get('/search/groups', [SearchController::class, 'groups']);

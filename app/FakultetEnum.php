@@ -4,9 +4,9 @@ namespace App;
 
 enum FakultetEnum: string
 {
-    case TIBBIYOT = 'Tibbiyot fakulteti';
-    case PEDAGOGIKA = 'Pedagogika va ijtimoiy-gumanitar fanlar fakulteti';
-    case IQTISODIYOT = 'Iqtisodiyot va axborot texnologiyalari fakulteti';
+    case TIBBIYOT = 'TIBBIYOT';
+    case PEDAGOGIKA = 'PEDAGOGIKA';
+    case IQTISODIYOT = "Iqtisodiyot";
 
     public static function options(): array
     {

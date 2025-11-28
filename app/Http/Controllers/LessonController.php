@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
-use App\Models\Group;
-use App\Models\Room;
-use App\FakultetEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\DB;
+use App\Models\Attendance;
+use App\Models\Student;
 
 class LessonController extends Controller
 {
@@ -77,58 +76,94 @@ class LessonController extends Controller
         }
     }
 
+
     public function store(Request $request)
     {
         try {
             $teacher = JWTAuth::parseToken()->authenticate();
 
             $validator = Validator::make($request->all(), [
-                'group_id' => 'required|exists:groups,id',
-                'room_id' => 'required|exists:rooms,id',
-                'date' => 'required|date_format:Y-m-d',
-                'image' => 'nullable|image|max:2048',
-                'fakultet' => 'required|string|in:' . implode(',', array_keys(FakultetEnum::options())),
-                'subject_name' => 'nullable|string|max:255',
-                'time_at' => 'nullable|string|max:50',
+                'group_id'     => 'required|exists:groups,id',
+                'room_id'      => 'required|exists:rooms,id',
+                'date'         => 'required|date',
+                'fakultet'     => 'required|string',
+                'subject_name' => 'required|string',
+                'lesson_type'  => 'required|string',
+                'time_at'      => 'required|string',
             ]);
 
             if ($validator->fails()) {
+                $errors = $validator->errors()->toArray();
+                $firstError = collect($errors)->flatten()->first() ?? 'Validatsiya xatosi';
+
                 return response()->json([
                     'success' => false,
                     'data' => [
-                        'message' => 'Validatsiya xatosi',
-                        'errors' => $validator->errors()
+                        'message'     => $firstError,
+                        'errors'      => $errors,
+                        'first_error' => $firstError,
                     ]
                 ], 422);
             }
 
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('lessons', 'public');
-            }
+            // Transaction: lesson yaratish + attendance larni ham bitta atomik operatsiyada bajaramiz
+            $result = DB::transaction(function () use ($request, $teacher) {
 
-            $details = [
-                'fakultet' => $request->fakultet,
-                'subject_name' => $request->subject_name,
-                'time_at' => $request->time_at,
-            ];
+                $imagePath = null;
+                if ($request->hasFile('image')) {
+                    $imagePath = $request->file('image')->store('lessons', 'public');
+                }
 
-            $lesson = new Lesson();
-            $lesson->teacher_id = $teacher->id;
-            $lesson->group_id = $request->group_id;
-            $lesson->room_id = $request->room_id;
-            $lesson->date = $request->date;
-            $lesson->image = $imagePath;
-            $lesson->details = $details;
-            $lesson->save();
+                $details = [
+                    'fakultet'     => $request->fakultet,
+                    'subject_name' => $request->subject_name,
+                    'lesson_type'  => $request->lesson_type,
+                    'time_at'      => $request->time_at,
+                ];
 
-            $lesson->load(['group', 'room', 'teacher']);
+                $lesson = new Lesson();
+                $lesson->teacher_id = $teacher->id;
+                $lesson->group_id = $request->group_id;
+                $lesson->room_id = $request->room_id;
+                $lesson->date = $request->date;
+                $lesson->image = $imagePath;
+                $lesson->details = $details;
+                $lesson->save();
+
+                // Guruhdagi talabalarni olish
+                $students = Student::where('group_id', $request->group_id)->get(['id']);
+
+                // Agar talabalar bo'lsa - bulk insert attendance yozuvlarini yaratish
+                if ($students->isNotEmpty()) {
+                    $now = now();
+                    $insert = [];
+                    foreach ($students as $s) {
+                        $insert[] = [
+                            'student_id' => $s->id,
+                            'lesson_id'  => $lesson->id,
+                            // dastlabki qiymat: true (keldi). Agar siz false qilishni hohlasangiz bu yerda o'zgartiring.
+                            'came'       => true,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                    // Bulk insert (tez va samarali)
+                    Attendance::insert($insert);
+                }
+
+                // Eager load relations (group, room, teacher, attendances -> student)
+                $lesson->load(['group', 'room', 'teacher']);
+                // load attendances and their students (agar mavjud bo'lsa)
+                $lesson->load(['attendances.student']);
+
+                return $lesson;
+            });
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'message' => 'Dars muvaffaqiyatli qo\'shildi',
-                    'lesson' => $lesson
+                    'lesson' => $result
                 ]
             ], 201);
 
@@ -141,6 +176,12 @@ class LessonController extends Controller
                 ]
             ], 401);
         } catch (\Exception $e) {
+            // log the exception for debugging
+            \Log::error('Lesson store error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'data' => [
@@ -156,7 +197,7 @@ class LessonController extends Controller
         try {
             $teacher = JWTAuth::parseToken()->authenticate();
 
-            $lesson = Lesson::with(['group', 'room', 'teacher', 'attendances'])
+            $lesson = Lesson::with(['group', 'room', 'teacher', 'attendances', 'attendances.student',])
                 ->find($id);
 
             if (!$lesson) {
@@ -207,6 +248,135 @@ class LessonController extends Controller
                 ]
             ], 401);
         } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'data' => [
+                    'message' => 'Xatolik yuz berdi',
+                    'error' => $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $teacher = JWTAuth::parseToken()->authenticate();
+
+            // Darsni topish
+            $lesson = Lesson::find($id);
+
+            if (!$lesson) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'message' => 'Dars topilmadi'
+                    ]
+                ], 404);
+            }
+
+            // Faqat o'z darsini update qilishi mumkin
+            if ($lesson->teacher_id != $teacher->id) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'message' => 'Sizda bu darsni tahrirlash huquqi yo\'q'
+                    ]
+                ], 403);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'attendances' => 'required|array',
+                'attendances.*.attendance_id' => 'required|exists:attendances,id',
+                'attendances.*.came' => 'required|boolean',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+            ]);
+
+            if ($validator->fails()) {
+                $errors = $validator->errors()->toArray();
+                $firstError = collect($errors)->flatten()->first() ?? 'Validatsiya xatosi';
+
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'message' => $firstError,
+                        'errors' => $errors,
+                    ]
+                ], 422);
+            }
+
+            // Transaction bilan saqlash
+            $result = DB::transaction(function () use ($request, $lesson) {
+                
+                // 1. Rasmni yangilash (agar yangi rasm bo'lsa)
+                if ($request->hasFile('image')) {
+                    // Eski rasmni o'chirish
+                    if ($lesson->image && \Storage::disk('public')->exists($lesson->image)) {
+                        \Storage::disk('public')->delete($lesson->image);
+                    }
+
+                    // Yangi rasmni saqlash
+                    $imagePath = $request->file('image')->store('lessons', 'public');
+                    $lesson->image = $imagePath;
+                    $lesson->save();
+                }
+
+                // 2. Davomatlarni yangilash
+                $attendances = $request->attendances;
+                
+                foreach ($attendances as $attendanceData) {
+                    $attendance = Attendance::where('id', $attendanceData['attendance_id'])
+                        ->where('lesson_id', $lesson->id)
+                        ->first();
+
+                    if ($attendance) {
+                        $attendance->came = $attendanceData['came'];
+                        $attendance->save();
+                    }
+                }
+
+                // 3. Yangilangan darsni qaytarish
+                $lesson->load(['group', 'room', 'teacher', 'attendances.student']);
+
+                return $lesson;
+            });
+
+            // Statistikani hisoblash
+            $total = $result->attendances()->count();
+            $came = $result->attendances()->where('came', true)->count();
+            $notCame = $result->attendances()->where('came', false)->count();
+            $percentage = $total > 0 ? round($came / $total * 100) : 0;
+
+            $lessonData = $result->toArray();
+            $lessonData['statistics'] = [
+                'total' => $total,
+                'came' => $came,
+                'not_came' => $notCame,
+                'percentage' => $percentage
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'message' => 'Davomat muvaffaqiyatli saqlandi',
+                    'lesson' => $lessonData
+                ]
+            ], 200);
+
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'data' => [
+                    'message' => 'Token topilmadi yoki yaroqsiz',
+                    'error' => $e->getMessage()
+                ]
+            ], 401);
+        } catch (\Exception $e) {
+            \Log::error('Lesson update error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'data' => [
