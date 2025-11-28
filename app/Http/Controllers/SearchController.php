@@ -35,9 +35,11 @@ class SearchController extends Controller
             $query->where('name', 'like', "%{$q}%");
         }
 
-        $list = $query->orderBy('name')->get(['id', 'name']);
+        $list = $query
+            ->orderBy('name')
+            ->limit(50)
+            ->get(['id', 'name']);
 
-        // map to simple array
         $data = $list->map(fn($g) => ['id' => $g->id, 'name' => $g->name])->values();
 
         return response()->json([
@@ -61,7 +63,10 @@ class SearchController extends Controller
             $query->where('name', 'like', "%{$q}%");
         }
 
-        $list = $query->orderBy('name')->get(['id', 'name', 'fakultet', 'status']);
+        $list = $query
+            ->orderBy('name')
+            ->limit(50)
+            ->get(['id', 'name', 'fakultet', 'status']);
 
         $data = $list->map(fn($r) => [
             'id' => $r->id,

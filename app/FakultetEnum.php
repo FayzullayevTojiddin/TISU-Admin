@@ -8,6 +8,8 @@ enum FakultetEnum: string
     case PEDAGOGIKA = 'PEDAGOGIKA';
     case IQTISODIYOT = "Iqtisodiyot";
 
+    case MAGISTRATURA = "Magistratura";
+
     public static function options(): array
     {
         return [
