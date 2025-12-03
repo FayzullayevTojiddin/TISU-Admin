@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -86,7 +87,7 @@ class LessonController extends Controller
                 'group_id'     => 'required|exists:groups,id',
                 'room_id'      => 'required|exists:rooms,id',
                 'date'         => 'required|date',
-                'fakultet'     => 'required|string',
+                'build'     => 'required|string',
                 'subject_name' => 'required|string',
                 'lesson_type'  => 'required|string',
                 'time_at'      => 'required|string',
@@ -109,13 +110,16 @@ class LessonController extends Controller
             // Transaction: lesson yaratish + attendance larni ham bitta atomik operatsiyada bajaramiz
             $result = DB::transaction(function () use ($request, $teacher) {
 
+                $room = Room::find($request->room_id);
+                $fakultet = $room->fakultet;
+
                 $imagePath = null;
                 if ($request->hasFile('image')) {
                     $imagePath = $request->file('image')->store('lessons', 'public');
                 }
 
                 $details = [
-                    'fakultet'     => $request->fakultet,
+                    'fakultet'     => $fakultet,
                     'subject_name' => $request->subject_name,
                     'lesson_type'  => $request->lesson_type,
                     'time_at'      => $request->time_at,
@@ -141,19 +145,15 @@ class LessonController extends Controller
                         $insert[] = [
                             'student_id' => $s->id,
                             'lesson_id'  => $lesson->id,
-                            // dastlabki qiymat: true (keldi). Agar siz false qilishni hohlasangiz bu yerda o'zgartiring.
                             'came'       => true,
                             'created_at' => $now,
                             'updated_at' => $now,
                         ];
                     }
-                    // Bulk insert (tez va samarali)
                     Attendance::insert($insert);
                 }
 
-                // Eager load relations (group, room, teacher, attendances -> student)
                 $lesson->load(['group', 'room', 'teacher']);
-                // load attendances and their students (agar mavjud bo'lsa)
                 $lesson->load(['attendances.student']);
 
                 return $lesson;
@@ -176,7 +176,6 @@ class LessonController extends Controller
                 ]
             ], 401);
         } catch (\Exception $e) {
-            // log the exception for debugging
             \Log::error('Lesson store error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'input' => $request->all()

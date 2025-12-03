@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RoomResource\Pages;
 use App\Models\Room;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -41,6 +40,12 @@ class RoomResource extends Resource
                         Select::make('fakultet')
                             ->label('Fakultet')
                             ->options(\App\FakultetEnum::options())
+                            ->required()
+                            ->searchable(),
+
+                        Select::make('build')
+                            ->label('Bino')
+                            ->options(\App\BuildEnum::options())
                             ->required()
                             ->searchable(),
                             

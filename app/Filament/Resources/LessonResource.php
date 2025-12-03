@@ -24,6 +24,9 @@ use Filament\Forms\Components\Select;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Storage;
 use App\Filament\Resources\LessonResource\RelationManagers\AttendancesRelationManager;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 
 class LessonResource extends Resource
 {
@@ -228,7 +231,6 @@ class LessonResource extends Resource
                                             ">' . $notCame . ' ta</div>
                                         </div>
 
-                                        <!-- optional: percent display -->
                                         <div style="margin-left:auto; min-width:160px; text-align:right;">
                                             <div style="font-size:13px; color:#94a3b8;">Faoliyat</div>
                                             <div style="font-weight:700; color:#e2e8f0; font-size:15px;">
@@ -238,7 +240,7 @@ class LessonResource extends Resource
                                     </div>
                                 </div>';
 
-                                return new \Illuminate\Support\HtmlString($html);
+                                return new HtmlString($html);
                             })
                     ]),
             ]);
@@ -250,32 +252,44 @@ class LessonResource extends Resource
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('details.fakultet')
                     ->label('Fakultet')
                     ->searchable()
                     ->sortable()
-                    ->wrap(),
+                    ->wrap()
+                    ->badge()
+                    ->color('info'),
 
                 TextColumn::make('group.name')
                     ->label('Guruh')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color('primary'),
 
                 TextColumn::make('room.name')
                     ->label('Xona')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color('gray'),
 
                 TextColumn::make('date')
                     ->label('Sana')
-                    ->date()
-                    ->sortable(),
+                    ->date('d.m.Y')
+                    ->sortable()
+                    ->badge()
+                    ->color('warning'),
 
                 TextColumn::make('attendances_total')
-                    ->label('Umumiy Soni')
+                    ->label('Umumiy')
                     ->getStateUsing(fn ($record) => $record?->attendances()->count() ?? 0)
+                    ->badge()
+                    ->color('info')
+                    ->alignCenter()
                     ->sortable(),
 
                 BadgeColumn::make('keldi')
@@ -283,7 +297,12 @@ class LessonResource extends Resource
                     ->getStateUsing(fn ($record) => $record?->attendances()->where('came', true)->count() ?? 0)
                     ->colors([
                         'success' => fn ($state) => $state > 0,
+                        'gray' => fn ($state) => $state === 0,
                     ])
+                    ->icons([
+                        'heroicon-o-check-circle' => fn ($state) => $state > 0,
+                    ])
+                    ->alignCenter()
                     ->sortable(),
 
                 BadgeColumn::make('kelmadi')
@@ -291,26 +310,127 @@ class LessonResource extends Resource
                     ->getStateUsing(fn ($record) => $record?->attendances()->where('came', false)->count() ?? 0)
                     ->colors([
                         'danger' => fn ($state) => $state > 0,
+                        'gray' => fn ($state) => $state === 0,
                     ])
+                    ->icons([
+                        'heroicon-o-x-circle' => fn ($state) => $state > 0,
+                    ])
+                    ->alignCenter()
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('group_id')
-                    ->label('Guruh bo‘yicha')
-                    ->options(fn () => Group::pluck('name', 'id')->toArray()),
+                // Fakultet filtri
+                SelectFilter::make('fakultet')
+                    ->label('🎓 Fakultet')
+                    ->options(self::getFakultetOptions())
+                    ->placeholder('Barcha fakultetlar')
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (filled($data['value'])) {
+                            return $query->where('details->fakultet', $data['value']);
+                        }
+                        return $query;
+                    })
+                    ->native(false)
+                    ->columnSpan(1),
 
-                Tables\Filters\SelectFilter::make('teacher_id')
-                    ->label("O'qituvchi bo'yicha")
-                    ->options(fn () => Teacher::pluck('full_name', 'id')->toArray()),
-            ])
+                // Guruh filtri
+                SelectFilter::make('group_id')
+                    ->label('👥 Guruh')
+                    ->relationship('group', 'name')
+                    ->placeholder('Barcha guruhlar')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->columnSpan(1),
+
+                // O'qituvchi filtri
+                SelectFilter::make('teacher_id')
+                    ->label('👨‍🏫 O\'qituvchi')
+                    ->relationship('teacher', 'full_name')
+                    ->placeholder('Barcha o\'qituvchilar')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->columnSpan(1),
+
+                // Sana oralig'i filtri
+                Filter::make('date_range')
+                    ->form([
+                        Grid::make(2)
+                            ->schema([
+                                DatePicker::make('date_from')
+                                    ->label('📅 Dan')
+                                    ->placeholder('Boshlanish sanasi')
+                                    ->native(false)
+                                    ->displayFormat('d.m.Y'),
+                                DatePicker::make('date_to')
+                                    ->label('📅 Gacha')
+                                    ->placeholder('Tugash sanasi')
+                                    ->native(false)
+                                    ->displayFormat('d.m.Y'),
+                            ])
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['date_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('date', '>=', $date),
+                            )
+                            ->when(
+                                $data['date_to'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('date', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['date_from'] ?? null) {
+                            $indicators[] = 'Sana dan: ' . \Carbon\Carbon::parse($data['date_from'])->format('d.m.Y');
+                        }
+                        if ($data['date_to'] ?? null) {
+                            $indicators[] = 'Sana gacha: ' . \Carbon\Carbon::parse($data['date_to'])->format('d.m.Y');
+                        }
+                        return $indicators;
+                    })
+                    ->columnSpan(1),
+            ], layout: Tables\Enums\FiltersLayout::AboveContentCollapsible)
+            ->filtersFormColumns(4)
+            ->persistFiltersInSession()
             ->actions([
-                Tables\Actions\EditAction::make()->label('Tahrirlash'),
+                Tables\Actions\ViewAction::make()
+                    ->label('Ko\'rish')
+                    ->color('info')
+                    ->icon('heroicon-o-eye'),
+                Tables\Actions\EditAction::make()
+                    ->label('Tahrirlash')
+                    ->color('warning')
+                    ->icon('heroicon-o-pencil-square'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()->label('O‘chirish'),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('O\'chirish')
+                        ->icon('heroicon-o-trash'),
                 ]),
-            ]);
+            ])
+            ->defaultSort('date', 'desc')
+            ->striped()
+            ->paginated([10, 25, 50, 100]);
+    }
+
+    /**
+     * Fakultet opsiyalarini qaytarish uchun yordamchi metod
+     */
+    protected static function getFakultetOptions(): array
+    {
+        return Lesson::query()
+            ->select('details')
+            ->get()
+            ->pluck('details.fakultet')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->mapWithKeys(fn ($fakultet) => [$fakultet => $fakultet])
+            ->toArray();
     }
 
     public static function getRelations(): array

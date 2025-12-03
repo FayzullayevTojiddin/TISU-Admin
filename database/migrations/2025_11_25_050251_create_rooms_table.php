@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('fakultet');
+            $table->string('build');
             $table->string('status')->default('active');
             $table->timestamps();
         });

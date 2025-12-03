@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\BuildEnum;
 use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\Room;
-use App\FakultetEnum;
 
 class SearchController extends Controller
 {
     /**
-     * Fakultetlar ro'yxati (enum dan olinadi)
-     * GET /teacher/search/fakultets
+     * Binolar ro'yxati (enum dan olinadi)
+     * GET /teacher/search/builds
      */
-    public function fakultets()
+    public function builds()
     {
         return response()->json([
             'success' => true,
-            'data' => FakultetEnum::options(),
+            'data' => BuildEnum::options(),
         ]);
     }
 
@@ -51,12 +51,12 @@ class SearchController extends Controller
     public function rooms(Request $request)
     {
         $q = $request->query('q');
-        $fakultet = $request->query('fakultet');
+        $build = $request->query('build');
 
         $query = Room::query();
 
-        if ($fakultet) {
-            $query->where('fakultet', $fakultet);
+        if ($build) {
+            $query->where('build', $build);
         }
 
         if ($q) {
@@ -66,7 +66,7 @@ class SearchController extends Controller
         $list = $query
             ->orderBy('name')
             ->limit(50)
-            ->get(['id', 'name', 'fakultet', 'status']);
+            ->get(['id', 'name']);
 
         $data = $list->map(fn($r) => [
             'id' => $r->id,
@@ -81,10 +81,6 @@ class SearchController extends Controller
         ]);
     }
 
-    /**
-     * Fanlar ro'yxati (statik array, searchable)
-     * GET /teacher/search/subjects?q=...
-     */
     public function subjects(Request $request)
     {
         $q = $request->query('q');
@@ -95,14 +91,12 @@ class SearchController extends Controller
             'Dasturlash',
             'Akademik yozuv',
             'Fizika',
-            // keyin siz qo'shishingiz mumkin
         ];
 
         if ($q) {
             $subjects = array_values(array_filter($subjects, fn($s) => stripos($s, $q) !== false));
         }
 
-        // map to id/name style (id - indeks)
         $data = array_values(array_map(fn($s, $i) => ['id' => $i + 1, 'name' => $s], $subjects, array_keys($subjects)));
 
         return response()->json([
@@ -111,10 +105,6 @@ class SearchController extends Controller
         ]);
     }
 
-    /**
-     * Darslar (paralar) ro'yxati - 12 para (array)
-     * GET /teacher/search/paras
-     */
     public function paras()
     {
         $paras = [
@@ -149,11 +139,10 @@ class SearchController extends Controller
         $q = $request->query('q');
 
         $types = [
-            'Ma\'ruza',
+            'Ma`ruza',
             'Amaliy',
             'Labaratoriya',
             'Seminar',
-            // keyin qo'shishingiz mumkin
         ];
 
         if ($q) {

@@ -19,7 +19,7 @@ Route::prefix('teacher')->group(function () {
         Route::get('/lessons/{id}', [LessonController::class, 'show']);
         Route::post('/lessons/{id}', [LessonController::class, 'update']);
 
-        Route::get('/search/fakultets', [SearchController::class, 'fakultets']);
+        Route::get('/search/builds', [SearchController::class, 'builds']);
         Route::get('/search/groups', [SearchController::class, 'groups']);
         Route::get('/search/rooms', [SearchController::class, 'rooms']);
         Route::get('/search/subjects', [SearchController::class, 'subjects']);
