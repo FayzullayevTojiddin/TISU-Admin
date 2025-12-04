@@ -78,6 +78,12 @@ class RoomResource extends Resource
                     ->sortable()
                     ->wrap(),
 
+                TextColumn::make('build')
+                    ->label('Bino')
+                    ->searchable()
+                    ->sortable()
+                    ->wrap(),
+
                 TextColumn::make('fakultet')
                     ->label('Fakultet')
                     ->searchable()

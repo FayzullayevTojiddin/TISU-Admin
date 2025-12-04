@@ -39,6 +39,7 @@ class StudentsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->paginated(false)
             ->recordTitleAttribute('full_name')
             ->columns([
                 Tables\Columns\TextColumn::make('row')

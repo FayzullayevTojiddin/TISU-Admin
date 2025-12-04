@@ -255,8 +255,8 @@ class LessonResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
-                TextColumn::make('details.fakultet')
-                    ->label('Fakultet')
+                TextColumn::make('room.build')
+                    ->label('Bino')
                     ->searchable()
                     ->sortable()
                     ->wrap()
@@ -414,7 +414,7 @@ class LessonResource extends Resource
             ])
             ->defaultSort('date', 'desc')
             ->striped()
-            ->paginated([10, 25, 50, 100]);
+            ->paginated([50]);
     }
 
     /**

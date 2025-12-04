@@ -19,7 +19,6 @@ class AttendancesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                
                 Forms\Components\Select::make('student_id')
                     ->label("O'quvchi")
                     ->relationship('student', 'full_name')
@@ -47,6 +46,7 @@ class AttendancesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->paginated(false)
             ->recordTitleAttribute('student.full_name')
             ->columns([
                 Tables\Columns\TextColumn::make('row')
