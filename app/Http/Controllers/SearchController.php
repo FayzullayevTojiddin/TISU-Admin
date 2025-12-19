@@ -6,13 +6,10 @@ use App\BuildEnum;
 use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\Room;
+use App\Enums\LessonType;
 
 class SearchController extends Controller
 {
-    /**
-     * Binolar ro'yxati (enum dan olinadi)
-     * GET /teacher/search/builds
-     */
     public function builds()
     {
         return response()->json([
@@ -21,10 +18,6 @@ class SearchController extends Controller
         ]);
     }
 
-    /**
-     * Guruhlar ro'yxati (searchable)
-     * GET /teacher/search/groups?q=...
-     */
     public function groups(Request $request)
     {
         $q = $request->query('q');
@@ -129,27 +122,26 @@ class SearchController extends Controller
             'data' => $data,
         ]);
     }
-
-    /**
-     * Dars turi ro'yxati (statik) - searchable mumkin
-     * GET /teacher/search/lesson-types?q=...
-     */
+    
     public function lessonTypes(Request $request)
     {
         $q = $request->query('q');
 
-        $types = [
-            'Ma`ruza',
-            'Amaliy',
-            'Labaratoriya',
-            'Seminar',
-        ];
+        $types = LessonType::list();
 
         if ($q) {
-            $types = array_values(array_filter($types, fn($t) => stripos($t, $q) !== false));
+            $q = mb_strtolower($q);
+            $types = array_filter($types, function ($name) use ($q) {
+                return mb_stripos($name, $q) !== false;
+            });
         }
 
-        $data = array_values(array_map(fn($s, $i) => ['id' => $i + 1, 'name' => $s], $types, array_keys($types)));
+        $data = array_values(array_map(function ($id, $name) {
+            return [
+                'id' => (int) $id,
+                'name' => $name,
+            ];
+        }, array_keys($types), $types));
 
         return response()->json([
             'success' => true,

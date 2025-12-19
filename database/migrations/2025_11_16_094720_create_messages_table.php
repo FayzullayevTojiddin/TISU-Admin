@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             
-            $table->foreignId('message_collection_id')->constrained();
+            $table->foreignId('message_collection_id')->constrained()->cascade('on_delete');
 
             $table->json('details')->nullable();
 
