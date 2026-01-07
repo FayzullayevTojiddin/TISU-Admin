@@ -215,7 +215,7 @@ class TeacherController extends Controller
             $validator = Validator::make($request->all(), [
                 'full_name' => 'required|string|max:255',
                 'login'     => 'required|string|max:255|unique:teachers,login',
-                'password'  => 'required|string|min:6',
+                'password'  => 'required|string|min:6|confirmed',
             ]);
 
             if ($validator->fails()) {
@@ -232,18 +232,20 @@ class TeacherController extends Controller
                 'full_name' => $request->full_name,
                 'login'     => $request->login,
                 'password'  => Hash::make($request->password),
-                'status'    => false,
+                'status'    => 1,
             ]);
+
+            $token = JWTAuth::fromUser($teacher);
 
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'message' => 'Ro‘yxatdan o‘tildi. Hisobingiz admin tomonidan tasdiqlangach faollashadi.',
+                    'message' => 'Muvaffaqiyatli ro\'yxatdan o\'tdingiz',
+                    'token' => $token,
                     'teacher' => [
                         'id' => $teacher->id,
                         'full_name' => $teacher->full_name,
                         'login' => $teacher->login,
-                        'status' => $teacher->status,
                     ],
                 ],
             ], 201);
@@ -258,5 +260,4 @@ class TeacherController extends Controller
             ], 500);
         }
     }
-
 }
