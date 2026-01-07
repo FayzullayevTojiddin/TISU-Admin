@@ -231,7 +231,7 @@ class TeacherController extends Controller
             $teacher = Teacher::create([
                 'full_name' => $request->full_name,
                 'login'     => $request->login,
-                'password'  => Hash::make($request->password),
+                'password'  => Hash::make(trim($request->password)),
                 'status'    => 0,
             ]);
 
