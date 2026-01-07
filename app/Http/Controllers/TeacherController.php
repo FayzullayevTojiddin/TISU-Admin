@@ -31,14 +31,14 @@ class TeacherController extends Controller
             
             $teacher = Teacher::where('login', $request->login)->first();
 
-            if (!$teacher || !Hash::check($request->password, $teacher->password)) {
-                return response()->json([
-                    'success' => false,
-                    'data' => [
-                        'message' => 'Login yoki parol noto\'g\'ri'
-                    ]
-                ], 401);
-            }
+            if (!$teacher || $request->password !== $teacher->password) {
+                    return response()->json([
+                        'success' => false,
+                        'data' => [
+                            'message' => 'Login yoki parol noto\'g\'ri'
+                        ]
+                    ], 401);
+                }
 
             if ($teacher->status != 1) {
                 return response()->json([
@@ -128,7 +128,7 @@ class TeacherController extends Controller
             $teacher = JWTAuth::parseToken()->authenticate();
 
             // Eski parolni tekshirish
-            if (!Hash::check($request->old_password, $teacher->password)) {
+            if(!$request->old_password === $teacher->password) {
                 return response()->json([
                     'success' => false,
                     'data' => [
@@ -231,7 +231,7 @@ class TeacherController extends Controller
             $teacher = Teacher::create([
                 'full_name' => $request->full_name,
                 'login'     => $request->login,
-                'password'  => Hash::make(trim($request->password)),
+                'password'  => trim($request->password),
                 'status'    => 0,
             ]);
 
