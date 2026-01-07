@@ -6,7 +6,7 @@ use App\BuildEnum;
 use Illuminate\Http\Request;
 use App\Models\Group;
 use App\Models\Room;
-use App\Enums\LessonType;
+use App\LessonType;
 
 class SearchController extends Controller
 {
@@ -43,8 +43,8 @@ class SearchController extends Controller
 
     public function rooms(Request $request)
     {
-        $q = $request->query('q');
         $build = $request->query('build');
+        $q     = $request->query('q');
 
         $query = Room::query();
 
@@ -56,17 +56,10 @@ class SearchController extends Controller
             $query->where('name', 'like', "%{$q}%");
         }
 
-        $list = $query
+        $data = $query
             ->orderBy('name')
             ->limit(50)
-            ->get(['id', 'name']);
-
-        $data = $list->map(fn($r) => [
-            'id' => $r->id,
-            'name' => $r->name,
-            'fakultet' => $r->fakultet,
-            'status' => $r->status,
-        ])->values();
+            ->get(['id', 'name', 'fakultet', 'status']);
 
         return response()->json([
             'success' => true,

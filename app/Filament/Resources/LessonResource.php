@@ -274,7 +274,8 @@ class LessonResource extends Resource
                     ->sortable()
                     ->wrap()
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->toggleable(),
 
                 TextColumn::make('group.name')
                     ->label('Guruh')
@@ -332,7 +333,6 @@ class LessonResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                // Fakultet filtri
                 SelectFilter::make('fakultet')
                     ->label('🎓 Fakultet')
                     ->options(self::getFakultetOptions())
@@ -346,7 +346,6 @@ class LessonResource extends Resource
                     ->native(false)
                     ->columnSpan(1),
 
-                // Guruh filtri
                 SelectFilter::make('group_id')
                     ->label('👥 Guruh')
                     ->relationship('group', 'name')
@@ -356,7 +355,6 @@ class LessonResource extends Resource
                     ->native(false)
                     ->columnSpan(1),
 
-                // O'qituvchi filtri
                 SelectFilter::make('teacher_id')
                     ->label('👨‍🏫 O\'qituvchi')
                     ->relationship('teacher', 'full_name')
@@ -366,7 +364,6 @@ class LessonResource extends Resource
                     ->native(false)
                     ->columnSpan(1),
 
-                // Sana oralig'i filtri
                 Filter::make('date_range')
                     ->form([
                         Grid::make(2)
@@ -409,14 +406,16 @@ class LessonResource extends Resource
             ->filtersFormColumns(4)
             ->persistFiltersInSession()
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('Ko\'rish')
-                    ->color('info')
-                    ->icon('heroicon-o-eye'),
-                Tables\Actions\EditAction::make()
-                    ->label('Tahrirlash')
-                    ->color('warning')
-                    ->icon('heroicon-o-pencil-square'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->label('Ko\'rish')
+                        ->color('info')
+                        ->icon('heroicon-o-eye'),
+                    Tables\Actions\EditAction::make()
+                        ->label('Tahrirlash')
+                        ->color('warning')
+                        ->icon('heroicon-o-pencil-square'),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
