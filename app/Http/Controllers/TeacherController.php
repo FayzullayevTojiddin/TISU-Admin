@@ -208,4 +208,55 @@ class TeacherController extends Controller
             ], 500);
         }
     }
+
+    public function register(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'full_name' => 'required|string|max:255',
+                'login'     => 'required|string|max:255|unique:teachers,login',
+                'password'  => 'required|string|min:6',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [
+                        'message' => 'Validatsiya xatosi',
+                        'errors' => $validator->errors(),
+                    ],
+                ], 422);
+            }
+
+            $teacher = Teacher::create([
+                'full_name' => $request->full_name,
+                'login'     => $request->login,
+                'password'  => Hash::make($request->password),
+                'status'    => false,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'message' => 'Ro‘yxatdan o‘tildi. Hisobingiz admin tomonidan tasdiqlangach faollashadi.',
+                    'teacher' => [
+                        'id' => $teacher->id,
+                        'full_name' => $teacher->full_name,
+                        'login' => $teacher->login,
+                        'status' => $teacher->status,
+                    ],
+                ],
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'data' => [
+                    'message' => 'Xatolik yuz berdi',
+                    'error' => $e->getMessage(),
+                ],
+            ], 500);
+        }
+    }
+
 }

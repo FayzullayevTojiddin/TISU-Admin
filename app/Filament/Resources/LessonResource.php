@@ -44,6 +44,14 @@ class LessonResource extends Resource
         return false;
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('teacher', function (Builder $query) {
+                $query->where('status', true);
+            });
+    }
+
     public static function form(Form $form): Form
     {
         return $form

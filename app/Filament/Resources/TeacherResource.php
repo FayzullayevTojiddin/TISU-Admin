@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 
 class TeacherResource extends Resource
 {
@@ -46,6 +47,12 @@ class TeacherResource extends Resource
                     ->afterStateHydrated(function (Forms\Get $get, Forms\Set $set) {
                         $set('password', '');
                     }),
+
+                Toggle::make('status')
+                    ->label('Faol holat')
+                    ->default(true)
+                    ->helperText('O‘qituvchi tizimda faol yoki nofaol holatda bo‘lishi')
+                    ->inline(false),
             ]);
     }
 
@@ -62,11 +69,6 @@ class TeacherResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('login')
-                    ->label('Login')
-                    ->searchable()
-                    ->sortable(),
-
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')
                     ->colors([
@@ -74,17 +76,26 @@ class TeacherResource extends Resource
                         'danger'  => fn ($state) => $state === false,
                     ])
                     ->formatStateUsing(fn ($state) => $state ? 'Active' : 'Inactive'),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
-                    ->dateTime('Y-m-d H:i')
-                    ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Holati')
+                    ->options([
+                        '1' => 'Faol',
+                        '0' => 'Nofaol',
+                    ])
+                    ->placeholder('Barchasi')
+                    ->query(function ($query, array $data) {
+                        if ($data['value'] === null) {
+                            return $query;
+                        }
+
+                        return $query->where('status', $data['value']);
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->button(),
+                Tables\Actions\DeleteAction::make()->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

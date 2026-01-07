@@ -8,7 +8,8 @@ use App\Http\Controllers\SearchController;
 
 Route::prefix('teacher')->group(function () {
     Route::post('/login', [TeacherController::class, 'login']);
-    
+    Route::post('/register', [TeacherController::class, 'register']);
+
     Route::middleware('auth:api')->group(function () {
         Route::post('/logout', [TeacherController::class, 'logout']);
         Route::post('/change-password', [TeacherController::class, 'changePassword']);
