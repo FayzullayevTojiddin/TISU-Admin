@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('login')->unique();
             $table->string('password');
-            $table->boolean('status')->default(true);
+            $table->boolean('status')->default(false);
             $table->timestamps();
         });
     }
