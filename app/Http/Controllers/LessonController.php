@@ -11,7 +11,6 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\DB;
 use App\Models\Attendance;
 use App\Models\Student;
-use Illuminate\Support\Facades\Log;
 
 class LessonController extends Controller
 {
@@ -261,16 +260,6 @@ class LessonController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $logFile = storage_path('logs/my-debug.log');
-        
-            file_put_contents($logFile, 
-                "\n=== " . date('Y-m-d H:i:s') . " ===\n" .
-                "Has file: " . ($request->hasFile('image') ? 'YES' : 'NO') . "\n" .
-                "All files: " . json_encode($request->allFiles()) . "\n" .
-                "Content-Type: " . $request->header('Content-Type') . "\n\n",
-                FILE_APPEND
-            );
-            
             $teacher = JWTAuth::parseToken()->authenticate();
 
             // Darsni topish
