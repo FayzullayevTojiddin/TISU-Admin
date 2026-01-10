@@ -288,7 +288,7 @@ class LessonController extends Controller
                 'attendances' => 'required|array',
                 'attendances.*.attendance_id' => 'required|exists:attendances,id',
                 'attendances.*.came' => 'required|boolean',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:20480',
             ]);
 
             if ($validator->fails()) {
