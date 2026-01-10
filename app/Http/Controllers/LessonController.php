@@ -259,12 +259,6 @@ class LessonController extends Controller
 
     public function update(Request $request, $id)
     {
-        \Log::info('==== NEW REQUEST ====');
-        \Log::info('METHOD: ' . $request->method());
-        \Log::info('HEADERS', $request->headers->all());
-        \Log::info('BODY', $request->all());
-        \Log::info('FILES', $_FILES);
-        \Log::info('HAS IMAGE', ['image' => $request->hasFile('image')]);
         try {
             $teacher = JWTAuth::parseToken()->authenticate();
 
