@@ -261,9 +261,16 @@ class LessonController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            error_log('=== UPDATE DEBUG ===');
-            error_log('Has file: ' . ($request->hasFile('image') ? 'YES' : 'NO'));
-            error_log('Files: ' . json_encode($request->allFiles()));
+            $logFile = storage_path('logs/my-debug.log');
+        
+            file_put_contents($logFile, 
+                "\n=== " . date('Y-m-d H:i:s') . " ===\n" .
+                "Has file: " . ($request->hasFile('image') ? 'YES' : 'NO') . "\n" .
+                "All files: " . json_encode($request->allFiles()) . "\n" .
+                "Content-Type: " . $request->header('Content-Type') . "\n\n",
+                FILE_APPEND
+            );
+            
             $teacher = JWTAuth::parseToken()->authenticate();
 
             // Darsni topish
