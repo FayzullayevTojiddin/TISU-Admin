@@ -232,7 +232,7 @@ class TeacherController extends Controller
                 'full_name' => $request->full_name,
                 'login'     => $request->login,
                 'password'  => trim($request->password),
-                'status'    => 0,
+                'status'    => 1,
             ]);
 
             $token = JWTAuth::fromUser($teacher);
