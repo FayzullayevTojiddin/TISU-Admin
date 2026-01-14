@@ -50,7 +50,6 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->loginRouteMiddleware(['throttle:admin-login'])
             ->authMiddleware([
                 Authenticate::class,
             ]);
