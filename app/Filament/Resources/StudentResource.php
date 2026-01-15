@@ -15,6 +15,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\KeyValue;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class StudentResource extends Resource
 {
@@ -26,6 +28,12 @@ class StudentResource extends Resource
     protected static ?string $modelLabel = "O'quvchi";
 
     protected static ?string $navigationIcon = 'heroicon-o-user';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with('group');
+    }
 
     public static function form(Form $form): Form
     {
@@ -40,7 +48,7 @@ class StudentResource extends Resource
                     ->label('Guruh')
                     ->relationship('group', 'name')
                     ->searchable()
-                    ->preload()
+                    ->lazy()
                     ->nullable()
                     ->createOptionForm([
                         TextInput::make('name')
@@ -95,7 +103,11 @@ class StudentResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('group_id')
                     ->label('Guruh bo‘yicha')
-                    ->options(fn () => Group::pluck('name', 'id')->toArray()),
+                    ->options(fn () => 
+                        Cache::remember('groups_filter', 3600, fn () =>
+                            Group::pluck('name', 'id')->toArray()
+                        )
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('Tahrirlash'),
