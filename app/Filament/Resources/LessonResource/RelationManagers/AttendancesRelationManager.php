@@ -17,13 +17,6 @@ class AttendancesRelationManager extends RelationManager
 
     protected static ?string $recordTitleAttribute = 'student.full_name';
 
-    
-    protected function getTableQuery(): Builder|Relation|null
-    {
-        return parent::getTableQuery()
-            ->with('student');
-    }
-
     public function form(Form $form): Form
     {
         return $form
