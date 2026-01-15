@@ -57,14 +57,14 @@ class StudentsRelationManager extends RelationManager
                     ->formatStateUsing(fn ($state) => $state ?? '-')
                     ->searchable()
                     ->sortable()
-                    ->toggleable(false)
+                    ->toggleable(true)
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Yaratildi')
                     ->dateTime('Y-m-d H:i')
                     ->sortable()
-                    ->toggleable(false)
+                    ->toggleable(true)
                     ->wrap(),
             ])
             ->filters([
