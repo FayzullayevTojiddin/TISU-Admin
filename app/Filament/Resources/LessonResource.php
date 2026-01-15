@@ -47,9 +47,13 @@ class LessonResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('teacher', function (Builder $query) {
-                $query->where('status', true);
-            });
+            ->with(['teacher', 'group', 'room'])
+            ->withCount([
+                'attendances as attendances_total',
+                'attendances as attendances_came' => fn ($q) => $q->where('came', true),
+                'attendances as attendances_not_came' => fn ($q) => $q->where('came', false),
+            ])
+            ->whereHas('teacher', fn (Builder $q) => $q->where('status', true));
     }
 
     public static function form(Form $form): Form
@@ -300,7 +304,6 @@ class LessonResource extends Resource
 
                 TextColumn::make('attendances_total')
                     ->label('Umumiy')
-                    ->getStateUsing(fn ($record) => $record?->attendances()->count() ?? 0)
                     ->badge()
                     ->color('info')
                     ->alignCenter()
@@ -308,7 +311,7 @@ class LessonResource extends Resource
 
                 BadgeColumn::make('keldi')
                     ->label('Keldi')
-                    ->getStateUsing(fn ($record) => $record?->attendances()->where('came', true)->count() ?? 0)
+                    ->getStateUsing(fn ($record) => $record->attendances_came)
                     ->colors([
                         'success' => fn ($state) => $state > 0,
                         'gray' => fn ($state) => $state === 0,
@@ -321,7 +324,7 @@ class LessonResource extends Resource
 
                 BadgeColumn::make('kelmadi')
                     ->label('Kelmadi')
-                    ->getStateUsing(fn ($record) => $record?->attendances()->where('came', false)->count() ?? 0)
+                    ->getStateUsing(fn ($record) => $record->attendances_not_came)
                     ->colors([
                         'danger' => fn ($state) => $state > 0,
                         'gray' => fn ($state) => $state === 0,

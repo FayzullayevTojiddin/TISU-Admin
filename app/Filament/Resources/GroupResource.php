@@ -30,6 +30,12 @@ class GroupResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-group';
 
+    public static function getEloquentQuery()
+    {
+        return parent::getEloquentQuery()
+            ->withCount(['students', 'lessons']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -96,7 +102,9 @@ class GroupResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()->label('O\'chirish'),
                 ]),
-            ]);
+            ])
+            ->paginationPageOptions([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getRelations(): array
