@@ -8,12 +8,20 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AttendancesRelationManager extends RelationManager
 {
     protected static string $relationship = 'attendances';
 
     protected static ?string $recordTitleAttribute = 'student.full_name';
+
+    
+    protected function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()
+            ->with('student');
+    }
 
     public function form(Form $form): Form
     {
