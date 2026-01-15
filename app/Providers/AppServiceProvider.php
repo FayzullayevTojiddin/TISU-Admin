@@ -11,17 +11,11 @@ use Illuminate\Support\Facades\Route;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         RateLimiter::for('admin-login', function ($request) {
@@ -34,12 +28,6 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($ip)->response(function () use ($ip) {
                 Cache::forever("blacklist:$ip", true);
                 abort(403, 'Your IP is permanently blocked.');
-            });
-        });
-
-        Filament::registerRoutes(function () {
-            Route::middleware(['web', 'throttle:admin-login'])->group(function () {
-                Filament::registerAuthRoutes();
             });
         });
     }
