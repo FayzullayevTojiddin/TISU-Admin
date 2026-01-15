@@ -15,8 +15,10 @@ return new class extends Migration
             $table->boolean('status')->default(true);
             $table->json('details')->nullable();
             $table->timestamps();
-
-            $table->foreign('group_id')->references('id')->on('groups')->onDelete('set null');
+            $table->foreign('group_id')
+                ->references('id')
+                ->on('groups')
+                ->onDelete('set null');
         });
     }
 
