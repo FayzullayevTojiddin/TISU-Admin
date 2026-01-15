@@ -116,7 +116,10 @@ class StudentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()->label('O‘chirish'),
                 ]),
-            ]);
+            ])
+            ->paginationPageOptions([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
+            ->paginated(true);
     }
 
     public static function getRelations(): array
