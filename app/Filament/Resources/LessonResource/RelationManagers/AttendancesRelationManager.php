@@ -8,6 +8,8 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class AttendancesRelationManager extends RelationManager
 {
@@ -16,7 +18,7 @@ class AttendancesRelationManager extends RelationManager
     protected static ?string $recordTitleAttribute = 'student.full_name';
 
     
-    protected function getTableQuery()
+    protected function getTableQuery(): Builder|Relation|null
     {
         return parent::getTableQuery()
             ->with('student');
